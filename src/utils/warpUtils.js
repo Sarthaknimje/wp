@@ -273,12 +273,12 @@ function generateWarpLink(txHash, isAlias = false) {
       baseUrl = baseUrl.slice(0, -1);
     }
     
-    // For alias links, we don't need the type prefix
+    // For alias links, we use path-based format: baseUrl/alias
     if (isAlias) {
-      return `${baseUrl}/?warp=${encodeURIComponent(txHash)}`;
+      return `${baseUrl}/${encodeURIComponent(txHash)}`;
     } else {
-      // For hash links, we need the hash: prefix
-      return `${baseUrl}/?warp=hash%3A${encodeURIComponent(txHash)}`;
+      // For hash links, we use path-based format: baseUrl/hash:txHash
+      return `${baseUrl}/hash:${encodeURIComponent(txHash)}`;
     }
   }
 }
