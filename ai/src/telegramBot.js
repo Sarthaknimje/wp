@@ -13,6 +13,10 @@ if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir);
 }
 
+// Add a message tracking system to prevent duplicate processing
+const processedMessages = new Map();
+const processingLock = new Map();
+
 /**
  * Initialize and start the Telegram bot
  * @param {string} token - Telegram bot token
@@ -22,12 +26,68 @@ function startTelegramBot(token) {
   // Create a bot instance
   const bot = new TelegramBot(token, { polling: true });
   
-  // Command to start the bot and show help
-  bot.onText(/\/start/, (msg) => {
+  // Add middleware to prevent duplicate message processing
+  bot.on('message', (msg) => {
+    const messageId = msg.message_id;
     const chatId = msg.chat.id;
-    const username = msg.from.username || msg.from.first_name;
+    const messageKey = `${chatId}:${messageId}`;
     
-    const welcomeMessage = `
+    // Skip if this message was already processed
+    if (processedMessages.has(messageKey)) {
+      console.log(`Skipping duplicate message: ${messageKey}`);
+      return;
+    }
+    
+    // Skip if this chat is currently being processed
+    if (processingLock.get(chatId)) {
+      console.log(`Chat ${chatId} is currently processing another command, queueing...`);
+      setTimeout(() => {
+        // Retry after a delay if the lock is still active
+        if (!processingLock.get(chatId)) {
+          bot.processUpdate({ message: msg });
+        }
+      }, 1000);
+      return;
+    }
+    
+    // Mark this message as processed
+    processedMessages.set(messageKey, true);
+    
+    // Clean up old messages (keep last 100 per chat)
+    const chatMessages = Array.from(processedMessages.keys())
+      .filter(key => key.startsWith(`${chatId}:`));
+    
+    if (chatMessages.length > 100) {
+      // Sort by message ID (which should be chronological)
+      chatMessages.sort((a, b) => {
+        const idA = parseInt(a.split(':')[1]);
+        const idB = parseInt(b.split(':')[1]);
+        return idA - idB;
+      });
+      
+      // Remove oldest messages
+      const toRemove = chatMessages.slice(0, chatMessages.length - 100);
+      toRemove.forEach(key => processedMessages.delete(key));
+    }
+  });
+  
+  // Command to start the bot and show help
+  bot.onText(/\/start/, async (msg) => {
+    const chatId = msg.chat.id;
+    const messageId = msg.message_id;
+    const messageKey = `${chatId}:${messageId}`;
+    
+    // Skip if already processed
+    if (processedMessages.has(messageKey)) return;
+    processedMessages.set(messageKey, true);
+    
+    // Set processing lock
+    processingLock.set(chatId, true);
+    
+    try {
+      const username = msg.from.username || msg.from.first_name;
+      
+      const welcomeMessage = `
 Hello ${username}! 👋 I'm the MultiversX Warp Generator Bot.
 
 I can help you create blockchain transactions using simple commands. Here's how to use me:
@@ -53,31 +113,47 @@ Send: \`/help\`
 I'll show this message again.
 
 Try it now by sending a command! 🚀
-    `;
-    
-    // Create a keyboard with common actions
-    const keyboard = {
-      reply_markup: {
-        keyboard: [
-          ['/warp stake 10 EGLD', '/warp swap 1 EGLD for USDC'],
-          ['/templates', '/help']
-        ],
-        resize_keyboard: true,
-        one_time_keyboard: false
-      }
-    };
-    
-    bot.sendMessage(chatId, welcomeMessage, { 
-      parse_mode: 'Markdown',
-      reply_markup: keyboard.reply_markup
-    });
+      `;
+      
+      // Create a keyboard with common actions
+      const keyboard = {
+        reply_markup: {
+          keyboard: [
+            ['/warp stake 10 EGLD', '/warp swap 1 EGLD for USDC'],
+            ['/templates', '/help']
+          ],
+          resize_keyboard: true,
+          one_time_keyboard: false
+        }
+      };
+      
+      await bot.sendMessage(chatId, welcomeMessage, { 
+        parse_mode: 'Markdown',
+        reply_markup: keyboard.reply_markup
+      });
+    } catch (error) {
+      console.error('Error in start command:', error);
+    } finally {
+      // Release the lock
+      processingLock.set(chatId, false);
+    }
   });
   
   // Help command
-  bot.onText(/\/help/, (msg) => {
+  bot.onText(/\/help/, async (msg) => {
     const chatId = msg.chat.id;
+    const messageId = msg.message_id;
+    const messageKey = `${chatId}:${messageId}`;
     
-    const helpMessage = `
+    // Skip if already processed
+    if (processedMessages.has(messageKey)) return;
+    processedMessages.set(messageKey, true);
+    
+    // Set processing lock
+    processingLock.set(chatId, true);
+    
+    try {
+      const helpMessage = `
 *MultiversX Warp Generator Bot Commands*
 
 🔹 *Basic Commands*
@@ -104,9 +180,15 @@ In groups, you must use the commands with a / prefix.
 Example: \`/warp stake 10 EGLD\`
 
 Need more help? Visit our website or contact support.
-    `;
-    
-    bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
+      `;
+      
+      await bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
+    } catch (error) {
+      console.error('Error in help command:', error);
+    } finally {
+      // Release the lock
+      processingLock.set(chatId, false);
+    }
   });
   
   // Command to check alias availability
@@ -176,79 +258,92 @@ Need more help? Visit our website or contact support.
   // Command to create a warp
   bot.onText(/\/warp (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
-    const fullPrompt = match[1].trim();
+    const messageId = msg.message_id;
+    const messageKey = `${chatId}:${messageId}`;
     
-    // Check if an alias is specified
-    let prompt = fullPrompt;
-    let alias = null;
+    // Skip if already processed
+    if (processedMessages.has(messageKey)) return;
+    processedMessages.set(messageKey, true);
     
-    const aliasMatch = fullPrompt.match(/alias=([a-zA-Z0-9-_]+)/);
-    if (aliasMatch) {
-      alias = aliasMatch[1];
-      // Remove the alias part from the prompt
-      prompt = fullPrompt.replace(/\s*alias=[a-zA-Z0-9-_]+\s*/, ' ').trim();
-    }
-    
-    bot.sendMessage(chatId, `Creating warp for: "${prompt}"${alias ? ` with alias: "${alias}"` : ''}...`);
+    // Set processing lock
+    processingLock.set(chatId, true);
     
     try {
-      const result = await processPrompt(prompt, alias);
+      const fullPrompt = match[1].trim();
       
-      // Generate a QR code image
-      const qrImagePath = path.join(tempDir, `qr-${Date.now()}.png`);
-      await qrcode.toFile(qrImagePath, result.fallbackLink || result.link);
+      // Check if an alias is specified
+      let prompt = fullPrompt;
+      let alias = null;
       
-      // Prepare the message
-      let warpMessage = `
+      const aliasMatch = fullPrompt.match(/alias=([a-zA-Z0-9-_]+)/);
+      if (aliasMatch) {
+        alias = aliasMatch[1];
+        // Remove the alias part from the prompt
+        prompt = fullPrompt.replace(/\s*alias=[a-zA-Z0-9-_]+\s*/, ' ').trim();
+      }
+      
+      await bot.sendMessage(chatId, `Creating warp for: "${prompt}"${alias ? ` with alias: "${alias}"` : ''}...`);
+      
+      try {
+        const result = await processPrompt(prompt, alias);
+        
+        // Generate a QR code image
+        const qrImagePath = path.join(tempDir, `qr-${Date.now()}.png`);
+        await qrcode.toFile(qrImagePath, result.fallbackLink || result.link);
+        
+        // Prepare the message
+        let warpMessage = `
 *Your Warp is Ready!* 🚀
 
 *Transaction Hash:* \`${result.txHash}\`
 `;
 
-      if (result.alias) {
-        warpMessage += `*Alias:* \`${result.alias}\`\n\n`;
-        warpMessage += `*Alias Link:*\n${result.link}\n`;
-        warpMessage += `_(This link uses your alias and may take a few minutes to work properly)_\n\n`;
+        if (result.alias) {
+          warpMessage += `*Alias:* \`${result.alias}\`\n\n`;
+          warpMessage += `*Alias Link:*\n${result.link}\n`;
+          warpMessage += `_(This link uses your alias and may take a few minutes to work properly)_\n\n`;
+        }
+        
+        warpMessage += `*Hash Link (Always Works):*\n${result.fallbackLink || result.link}\n`;
+        warpMessage += `_(This link uses the transaction hash directly and will always work)_\n\n`;
+        
+        if (result.explorerLink) {
+          warpMessage += `*View on Explorer:*\n${result.explorerLink}\n\n`;
+        }
+        
+        if (result.aliasError) {
+          warpMessage += `⚠️ *Alias Registration Issue:* ${result.aliasError}\n`;
+          warpMessage += `Don't worry! You can still use your warp with the Hash Link provided above.\n\n`;
+        }
+        
+        warpMessage += `*Scan the QR code below to access your warp:*`;
+        
+        // Send the message with the QR code
+        await bot.sendMessage(chatId, warpMessage, { parse_mode: 'Markdown' });
+        await bot.sendPhoto(chatId, qrImagePath);
+        
+        // Delete the temporary file after sending
+        fs.unlinkSync(qrImagePath);
+        
+      } catch (error) {
+        console.error('Error creating warp:', error);
+        
+        let errorMessage = `Error creating warp: ${error.message}`;
+        
+        if (error.helpfulTips && error.helpfulTips.length > 0) {
+          errorMessage += '\n\nHelpful Tips:';
+          error.helpfulTips.forEach(tip => {
+            errorMessage += `\n• ${tip}`;
+          });
+        }
+        
+        await bot.sendMessage(chatId, errorMessage);
       }
-      
-      warpMessage += `*Hash Link (Always Works):*\n${result.fallbackLink || result.link}\n`;
-      warpMessage += `_(This link uses the transaction hash directly and will always work)_\n\n`;
-      
-      if (result.explorerLink) {
-        warpMessage += `*View on Explorer:*\n${result.explorerLink}\n\n`;
-      }
-      
-      if (result.aliasError) {
-        warpMessage += `⚠️ *Alias Registration Issue:* ${result.aliasError}\n`;
-        warpMessage += `Don't worry! You can still use your warp with the Hash Link provided above.\n\n`;
-      }
-      
-      warpMessage += `*Scan the QR code below to access your warp:*`;
-      
-      // Send the message with the QR code
-      bot.sendMessage(chatId, warpMessage, { parse_mode: 'Markdown' })
-        .then(() => {
-          // Send the QR code as a photo
-          bot.sendPhoto(chatId, qrImagePath)
-            .then(() => {
-              // Delete the temporary file after sending
-              fs.unlinkSync(qrImagePath);
-            });
-        });
-      
     } catch (error) {
-      console.error('Error creating warp:', error);
-      
-      let errorMessage = `Error creating warp: ${error.message}`;
-      
-      if (error.helpfulTips && error.helpfulTips.length > 0) {
-        errorMessage += '\n\nHelpful Tips:';
-        error.helpfulTips.forEach(tip => {
-          errorMessage += `\n• ${tip}`;
-        });
-      }
-      
-      bot.sendMessage(chatId, errorMessage);
+      console.error('Error in warp command:', error);
+    } finally {
+      // Release the lock
+      processingLock.set(chatId, false);
     }
   });
   
