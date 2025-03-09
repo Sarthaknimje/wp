@@ -541,6 +541,14 @@ async function processDirectContractWarp(contractAddress, functionName, args, va
         // Create the alias registration transaction
         const registerTx = await createWarpRegistrationTransaction(txHash, alias);
         
+        // Set the nonce for the registration transaction
+        const nonce = await getNonce(wallet.address);
+        registerTx.setNonce(nonce);
+        
+        // Sign the registration transaction
+        const signature = await wallet.signer.sign(registerTx.serializeForSigning());
+        registerTx.applySignature(signature);
+        
         // Send the registration transaction
         const aliasTxHash = await sendTransaction(registerTx);
         
@@ -629,6 +637,9 @@ async function processBatchPrompts(prompts) {
       // Generate a QR code for the warp
       const qrCode = await generateWarpQRCode(txHash, false);
       
+      // Note: We could support aliases for batch warps in the future
+      // For now, just create the warps without aliases
+      
       // Add to results
       results.push({
         success: true,
@@ -655,10 +666,10 @@ async function processBatchPrompts(prompts) {
 }
 
 /**
- * Process a user prompt to create and deploy a warp
- * @param {string} prompt - The user's natural language prompt
+ * Process a user prompt to create a warp
+ * @param {string} prompt - The user's prompt
  * @param {string} alias - Optional alias for the warp
- * @returns {Promise<Object>} - The processing result
+ * @returns {Promise<Object>} - The result object
  */
 async function processPrompt(prompt, alias = null) {
   try {
@@ -699,6 +710,14 @@ async function processPrompt(prompt, alias = null) {
         
         // Create the alias registration transaction
         const registerTx = await createWarpRegistrationTransaction(txHash, alias);
+        
+        // Set the nonce for the registration transaction
+        const nonce = await getNonce(wallet.address);
+        registerTx.setNonce(nonce);
+        
+        // Sign the registration transaction
+        const signature = await wallet.signer.sign(registerTx.serializeForSigning());
+        registerTx.applySignature(signature);
         
         // Send the registration transaction
         const aliasTxHash = await sendTransaction(registerTx);
