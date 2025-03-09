@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h1 class="text-center">MultiversX AI Warp Generator</h1>
+            <p class="text-center mb-0">Create blockchain transactions with natural language</p>
+          </div>
+          <div class="card-body">
+            <% if (error) { %>
+              <div class="alert alert-danger">
+                <strong>Error:</strong> <%= error %>
+                <% if (typeof helpfulTips !== 'undefined' && helpfulTips.length > 0) { %>
+                  <hr>
+                  <p><strong>Helpful Tips:</strong></p>
+                  <ul>
+                    <% helpfulTips.forEach(tip => { %>
+                      <li><%= tip %></li>
+                    <% }); %>
+                  </ul>
+                <% } %>
+              </div>
+            <% } %>
+
+            <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="generate-tab" data-bs-toggle="tab" data-bs-target="#generate" type="button" role="tab" aria-controls="generate" aria-selected="true">Generate Warp</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview-form" type="button" role="tab" aria-controls="preview-form" aria-selected="false">Preview Warp</button>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="myTabContent">
+              <!-- Generate Warp Tab -->
+              <div class="tab-pane fade show active" id="generate" role="tabpanel" aria-labelledby="generate-tab">
+                <form action="/generate" method="POST">
+                  <div class="mb-3">
+                    <label for="prompt" class="form-label">Enter your prompt:</label>
+                    <textarea class="form-control" id="prompt" name="prompt" rows="3" placeholder="Example: Stake 10 EGLD with validator erd123..." required></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label for="alias" class="form-label">Alias (optional):</label>
+                    <input type="text" class="form-control" id="alias" name="alias" placeholder="Enter a memorable name for your Warp">
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Generate Warp</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Preview Warp Tab -->
+              <div class="tab-pane fade" id="preview-form" role="tabpanel" aria-labelledby="preview-tab">
+                <form action="/preview" method="POST">
+                  <div class="mb-3">
+                    <label for="preview-prompt" class="form-label">Enter your prompt to preview:</label>
+                    <textarea class="form-control" id="preview-prompt" name="prompt" rows="3" placeholder="Example: Swap 1 EGLD for USDC at the best rate" required></textarea>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-secondary">Preview Warp</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Result Section -->
+            <% if (result) { %>
+              <div class="mt-5">
+                <h2 class="text-center mb-4">Your Warp is Ready!</h2>
+                <div class="card mb-4">
+                  <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Warp Details</h3>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p><strong>Transaction Hash:</strong> <code><%= result.txHash %></code></p>
+                        <% if (result.alias) { %>
+                          <p><strong>Alias:</strong> <code><%= result.alias %></code></p>
+                        <% } %>
+                        <p><strong>Shareable Link:</strong> <a href="<%= result.link %>" target="_blank"><%= result.link %></a></p>
+                      </div>
+                      <div class="col-md-6 text-center">
+                        <h4>Scan QR Code</h4>
+                        <pre class="qr-code"><%= result.qrCode %></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="alert alert-info">
+                  <p class="mb-0">Share this link or QR code with anyone to let them execute the transaction!</p>
+                </div>
+                <% if (result.explorerLink) { %>
+                  <div class="alert alert-secondary">
+                    <p class="mb-0"><strong>Check transaction status:</strong> <a href="<%= result.explorerLink %>" target="_blank">View on Explorer</a></p>
+                  </div>
+                <% } %>
+                <% if (result.aliasError) { %>
+                  <div class="alert alert-warning">
+                    <p class="mb-0"><strong>Alias Registration Error:</strong> <%= result.aliasError %></p>
+                    <p class="mb-0">Using transaction hash link instead.</p>
+                  </div>
+                <% } %>
+              </div>
+            <% } %>
+
+            <!-- Preview Result Section -->
+            <% if (preview) { %>
+              <div class="mt-5">
+                <h2 class="text-center mb-4">Warp Preview</h2>
+                <div class="card mb-4">
+                  <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">Warp Information</h3>
+                  </div>
+                  <div class="card-body">
+                    <p><strong>Name:</strong> <%= preview.warp.name %></p>
+                    <p><strong>Title:</strong> <%= preview.warp.title %></p>
+                    <p><strong>Description:</strong> <%= preview.warp.description || 'None' %></p>
+                    
+                    <h4 class="mt-4">Actions:</h4>
+                    <% preview.warp.actions.forEach((action, index) => { %>
+                      <div class="card mb-3">
+                        <div class="card-header">
+                          <strong>Action <%= index + 1 %>: <%= action.label %></strong>
+                        </div>
+                        <div class="card-body">
+                          <p><strong>Type:</strong> <%= action.type %></p>
+                          <p><strong>Description:</strong> <%= action.description || 'None' %></p>
+                          <% if (action.type === 'contract') { %>
+                            <p><strong>Contract:</strong> <code><%= action.address %></code></p>
+                            <p><strong>Function:</strong> <code><%= action.func %></code></p>
+                            <p><strong>Value:</strong> <%= action.value || '0' %> EGLD</p>
+                          <% } %>
+                        </div>
+                      </div>
+                    <% }); %>
+                    
+                    <h4 class="mt-4">AI Understanding:</h4>
+                    <div class="card">
+                      <div class="card-body">
+                        <p><strong>Intent:</strong> <%= preview.intentData.intent %></p>
+                        <p><strong>Parameters:</strong></p>
+                        <pre><code><%= JSON.stringify(preview.intentData.params, null, 2) %></code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="alert alert-info">
+                  <p class="mb-0">This is what your Warp will look like when deployed.</p>
+                </div>
+              </div>
+            <% } %>
+
+            <!-- Examples Section -->
+            <div class="mt-5">
+              <h3>Example Prompts</h3>
+              <div class="list-group">
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Stake 10 EGLD with validator erd123...</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">I want to lend 100 USDC to earn interest</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Borrow 500 USDC with 2 EGLD as collateral</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Swap 1 EGLD for USDC at the best rate</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Mint an NFT for 0.5 EGLD from collection X</button>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer text-center">
+            <p>Created for MultiversX Hackathon</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Example prompt functionality
+    document.querySelectorAll('.example-prompt').forEach(button => {
+      button.addEventListener('click', function() {
+        const activeTab = document.querySelector('.tab-pane.active');
+        const promptField = activeTab.querySelector('textarea');
+        promptField.value = this.textContent;
+      });
+    });
+  </script>
+</body>
+</html> 
