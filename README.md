@@ -1,69 +1,93 @@
 # MultiversX AI Warp Generator
 
-A web application that allows users to create MultiversX blockchain transactions using natural language prompts. The application leverages AI to interpret user intentions and generates Warp links that can be shared with others.
+An innovative AI-powered agent for the MultiversX hackathon that allows anyone to create Warps by simply typing natural language prompts. This tool leverages AI to understand user intent and the MultiversX blockchain's Warp protocol to generate shareable transaction links that are live on the blockchain.
 
-## Features
+## 🚀 Features
 
-- Generate blockchain transactions using natural language
-- Preview warps before deployment
-- Register custom aliases for warps
-- Generate QR codes for easy sharing
-- Support for various transaction types (swap, stake, transfer, etc.)
+- **AI-Powered Understanding**: Uses advanced natural language processing to understand user intent
+- **Natural Language Interface**: Create complex blockchain transactions using simple English
+- **QR Code Generation**: Easily share Warps via scannable QR codes
+- **Preview Mode**: Preview Warps before deploying them to the blockchain
+- **Web Interface**: User-friendly web application for creating Warps
+- **Live Blockchain Deployment**: Creates real Warps on the MultiversX devnet
+- **Support for Various DeFi Activities**:
+  - Staking EGLD
+  - Lending crypto assets
+  - Borrowing with collateral
+  - Swapping tokens
+  - Minting NFTs
+  - Custom contract calls
+- **Custom Aliases**: Register Warps with memorable aliases
+- **Shareable Links**: Generate links that can be shared with anyone
 
-## Technologies Used
+## 📋 Requirements
 
-- Node.js
-- Express.js
-- EJS templating
-- MultiversX SDK
-- @vleap/warps package
-- OpenAI API for natural language processing
+- Node.js v14 or higher
+- A MultiversX wallet (keystore file)
+- Access to MultiversX devnet (for testing)
 
-## Installation
+## ⚙️ Setup
 
-1. Clone the repository:
-```bash
-git clone https://github.com/Sarthaknimje/wp.git
-cd wp
-```
-
+1. Clone the repository
 2. Install dependencies:
-```bash
-npm install
+   ```
+   npm install
+   ```
+3. Configure your environment:
+   Create a `.env` file with the following variables:
+   ```
+   # MultiversX Network Configuration
+   MULTIVERSX_NETWORK=devnet
+   MULTIVERSX_API_URL=https://devnet-api.multiversx.com
+
+   # Wallet Configuration
+   WALLET_KEYSTORE_FILE=./path/to/your/keystore.json
+   WALLET_PASSWORD=your_wallet_password
+   WALLET_ADDRESS=your_wallet_address
+   
+   # Application Configuration
+   MOCK_MODE=false  # Set to true for demo mode without blockchain transactions
+   ```
+
+4. Ensure your wallet has sufficient funds on the devnet:
+   - Get devnet EGLD from the [MultiversX Devnet Faucet](https://r3d4.fr/faucet)
+   - Your wallet needs EGLD to pay for transaction fees
+
+## 🔍 Usage
+
+### CLI Interface
+
+Run the CLI tool:
+
 ```
-
-3. Create a `.env` file with the following variables:
-```
-# MultiversX Network Configuration
-MULTIVERSX_NETWORK=devnet
-MULTIVERSX_API_URL=https://devnet-api.multiversx.com
-
-# Wallet Configuration
-WALLET_KEYSTORE_FILE=./path-to-your-keystore.json
-WALLET_PASSWORD=your-password
-WALLET_ADDRESS=your-wallet-address
-
-# Application Configuration
-MOCK_MODE=false  # Set to false for real blockchain transactions
-
-# Warp Configuration
-WARP_REGISTRY_ADDRESS=erd1qqqqqqqqqqqqqpgqmuk0q2saj0mgxmk26m3tzzhrrq4fraaea7qsuf8xm5
-WARP_BASE_URL=https://devnet.usewarp.to/
-```
-
-4. Start the application:
-```bash
 npm start
 ```
 
-## Usage
+### Web Interface
 
-1. Enter a natural language prompt describing the transaction you want to create
-2. (Optional) Enter an alias for your warp
-3. Click "Generate Warp" to create the transaction
-4. Share the generated link or QR code with others
+Run the web server:
 
-## Examples
+```
+npm run web
+```
+
+Then open your browser and navigate to `http://localhost:3000`
+
+For development with auto-reload:
+
+```
+npm run dev:web
+```
+
+### Commands
+
+- **Create a Warp**: Enter a natural language prompt describing what you want to do
+- **Preview a Warp**: Type `preview` to enter preview mode without deploying
+- **Exit**: Type `exit` to quit the application
+
+### Example Prompts
+
+The AI can understand various prompts like:
 
 - "Stake 10 EGLD with validator erd123..."
 - "I want to lend 100 USDC to earn interest"
@@ -71,8 +95,36 @@ npm start
 - "Swap 1 EGLD for USDC at the best rate"
 - "Mint an NFT for 0.5 EGLD from collection X"
 
-## License
+## 🧪 Testing
 
-MIT
+Test your Warps by accessing the generated link at `https://devnet.usewarp.to?warp=your_warp_id` or by scanning the generated QR code. The links are live on the MultiversX devnet and can be shared with anyone.
 
-## Created for MultiversX Hackathon 
+## 📚 Key Components
+
+- `warpAgent.js` - Core agent that processes prompts and creates Warps
+- `aiUtils.js` - AI-powered prompt understanding
+- `warpUtils.js` - Utilities for Warp creation and blockchain interaction
+- `warpTemplates.js` - Templates for different types of Warps
+- `wallet.js` - Handles wallet operations
+- `server.js` - Web server for the user interface
+
+## 🔗 Resources
+
+- [MultiversX Warps Documentation](https://docs.multiversx.com/developers/tools/warps)
+- [MultiversX API Documentation](https://docs.multiversx.com/developers/apis/api-introduction)
+- [Devnet Explorer](https://devnet-explorer.multiversx.com/)
+
+## 💡 Innovation
+
+This project innovates by:
+
+1. **Bridging Natural Language and Blockchain**: Making complex blockchain operations accessible to everyone
+2. **AI-Powered Intent Recognition**: Understanding what users want to do without requiring technical knowledge
+3. **Instant Shareable Transactions**: Creating ready-to-use transaction links that can be shared anywhere
+4. **QR Code Integration**: Making mobile sharing seamless
+5. **Preview Functionality**: Allowing users to see what they're creating before deploying
+6. **Live Blockchain Integration**: Creating real Warps that are immediately usable on the MultiversX devnet
+
+## 📝 License
+
+MIT 

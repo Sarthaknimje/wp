@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-md-8 offset-md-2">
+        <div class="card shadow">
+          <div class="card-header bg-primary text-white">
+            <h1 class="text-center">MultiversX AI Warp Generator</h1>
+            <p class="text-center mb-0">Create blockchain transactions with natural language</p>
+          </div>
+          <div class="card-body">
+            <% if (error) { %>
+              <div class="alert alert-danger">
+                <strong>Error:</strong> <%= error %>
+                <% if (typeof helpfulTips !== 'undefined' && helpfulTips.length > 0) { %>
+                  <hr>
+                  <p><strong>Helpful Tips:</strong></p>
+                  <ul>
+                    <% helpfulTips.forEach(tip => { %>
+                      <li><%= tip %></li>
+                    <% }); %>
+                  </ul>
+                <% } %>
+              </div>
+            <% } %>
+
+            <div class="mb-3 d-flex justify-content-between align-items-center">
+              <div>
+                <a href="/my-warps" class="btn btn-outline-primary">My Warps</a>
+                <a href="/warp-stats" class="btn btn-outline-info">Statistics</a>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="darkModeSwitch">
+                <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
+              </div>
+            </div>
+
+            <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="generate-tab" data-bs-toggle="tab" data-bs-target="#generate" type="button" role="tab" aria-controls="generate" aria-selected="true">Generate Warp</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview-form" type="button" role="tab" aria-controls="preview-form" aria-selected="false">Preview Warp</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contract-tab" data-bs-toggle="tab" data-bs-target="#contract-form" type="button" role="tab" aria-controls="contract-form" aria-selected="false">Direct Contract</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="batch-tab" data-bs-toggle="tab" data-bs-target="#batch-form" type="button" role="tab" aria-controls="batch-form" aria-selected="false">Batch Create</button>
+              </li>
+            </ul>
+
+            <div class="tab-content" id="myTabContent">
+              <!-- Generate Warp Tab -->
+              <div class="tab-pane fade show active" id="generate" role="tabpanel" aria-labelledby="generate-tab">
+                <form action="/generate" method="POST">
+                  <div class="mb-3">
+                    <label for="prompt" class="form-label">Enter your prompt:</label>
+                    <textarea class="form-control" id="prompt" name="prompt" rows="3" placeholder="Example: Stake 10 EGLD with validator erd123..." required></textarea>
+                  </div>
+                  <div class="mb-3">
+                    <label for="alias" class="form-label">Alias (optional):</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="alias" name="alias" placeholder="Enter a memorable name for your Warp">
+                      <button class="btn btn-outline-secondary" type="button" id="checkAliasBtn">Check Availability</button>
+                    </div>
+                    <div id="aliasAvailabilityResult" class="form-text"></div>
+                  </div>
+                  <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="customStyleCheck">
+                    <label class="form-check-label" for="customStyleCheck">
+                      Add custom styling
+                    </label>
+                  </div>
+                  <div id="stylingOptions" class="row mb-3" style="display: none;">
+                    <div class="col-md-6">
+                      <label for="primaryColor" class="form-label">Primary Color:</label>
+                      <input type="color" class="form-control form-control-color" id="primaryColor" name="primaryColor" value="#3498db">
+                    </div>
+                    <div class="col-md-6">
+                      <label for="secondaryColor" class="form-label">Secondary Color:</label>
+                      <input type="color" class="form-control form-control-color" id="secondaryColor" name="secondaryColor" value="#2ecc71">
+                    </div>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Generate Warp</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Preview Warp Tab -->
+              <div class="tab-pane fade" id="preview-form" role="tabpanel" aria-labelledby="preview-tab">
+                <form action="/preview" method="POST">
+                  <div class="mb-3">
+                    <label for="preview-prompt" class="form-label">Enter your prompt to preview:</label>
+                    <textarea class="form-control" id="preview-prompt" name="prompt" rows="3" placeholder="Example: Swap 1 EGLD for USDC at the best rate" required></textarea>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-secondary">Preview Warp</button>
+                  </div>
+                </form>
+              </div>
+              
+              <!-- Direct Contract Interaction Tab -->
+              <div class="tab-pane fade" id="contract-form" role="tabpanel" aria-labelledby="contract-tab">
+                <form action="/create-contract-warp" method="POST">
+                  <div class="mb-3">
+                    <label for="contractAddress" class="form-label">Contract Address:</label>
+                    <input type="text" class="form-control" id="contractAddress" name="contractAddress" placeholder="erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="functionName" class="form-label">Function Name:</label>
+                    <input type="text" class="form-control" id="functionName" name="functionName" placeholder="e.g., swap, stake, delegate" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="args" class="form-label">Arguments (comma separated):</label>
+                    <input type="text" class="form-control" id="args" name="args" placeholder="e.g., EGLD,USDC,1000000000000000000">
+                  </div>
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="value" class="form-label">EGLD Value:</label>
+                      <input type="text" class="form-control" id="value" name="value" placeholder="e.g., 0.1">
+                    </div>
+                    <div class="col-md-6">
+                      <label for="gasLimit" class="form-label">Gas Limit:</label>
+                      <input type="text" class="form-control" id="gasLimit" name="gasLimit" placeholder="e.g., 10000000">
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="contractAlias" class="form-label">Alias (optional):</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" id="contractAlias" name="alias" placeholder="Enter a memorable name for your Warp">
+                      <button class="btn btn-outline-secondary" type="button" id="checkContractAliasBtn">Check Availability</button>
+                    </div>
+                    <div id="contractAliasAvailabilityResult" class="form-text"></div>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Create Contract Warp</button>
+                  </div>
+                </form>
+              </div>
+              
+              <!-- Batch Create Tab -->
+              <div class="tab-pane fade" id="batch-form" role="tabpanel" aria-labelledby="batch-tab">
+                <form action="/batch-create" method="POST">
+                  <div class="mb-3">
+                    <label for="batch-prompts" class="form-label">Enter multiple prompts (one per line):</label>
+                    <textarea class="form-control" id="batch-prompts" name="prompts" rows="6" placeholder="Swap 1 EGLD for USDC at the best rate&#10;Stake 10 EGLD with validator erd123...&#10;Send 0.5 EGLD to erd1..." required></textarea>
+                    <div class="form-text">Maximum 5 prompts allowed per batch.</div>
+                  </div>
+                  <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Create Batch Warps</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Result Section -->
+            <% if (result) { %>
+              <div class="mt-5">
+                <h2 class="text-center mb-4">Your Warp is Ready!</h2>
+                <div class="card mb-4">
+                  <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">Warp Details</h3>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <p><strong>Transaction Hash:</strong> <code><%= result.txHash %></code></p>
+                        <% if (result.alias) { %>
+                          <p><strong>Alias:</strong> <code><%= result.alias %></code></p>
+                        <% } %>
+                        <p><strong>Shareable Link:</strong> <a href="<%= result.link %>" target="_blank"><%= result.link %></a></p>
+                      </div>
+                      <div class="col-md-6 text-center">
+                        <h4>Scan QR Code</h4>
+                        <pre class="qr-code"><%= result.qrCode %></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="alert alert-info">
+                  <p class="mb-0">Share this link or QR code with anyone to let them execute the transaction!</p>
+                </div>
+                <% if (result.explorerLink) { %>
+                  <div class="alert alert-secondary">
+                    <p class="mb-0"><strong>Check transaction status:</strong> <a href="<%= result.explorerLink %>" target="_blank">View on Explorer</a></p>
+                  </div>
+                <% } %>
+                <% if (result.aliasError) { %>
+                  <div class="alert alert-warning">
+                    <p class="mb-0"><strong>Alias Registration Error:</strong> <%= result.aliasError %></p>
+                    <p class="mb-0">Using transaction hash link instead.</p>
+                  </div>
+                <% } %>
+              </div>
+            <% } %>
+
+            <!-- Preview Result Section -->
+            <% if (preview) { %>
+              <div class="mt-5">
+                <h2 class="text-center mb-4">Warp Preview</h2>
+                <div class="card mb-4">
+                  <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">Warp Information</h3>
+                  </div>
+                  <div class="card-body">
+                    <p><strong>Name:</strong> <%= preview.warp.name %></p>
+                    <p><strong>Title:</strong> <%= preview.warp.title %></p>
+                    <p><strong>Description:</strong> <%= preview.warp.description || 'None' %></p>
+                    
+                    <h4 class="mt-4">Actions:</h4>
+                    <% preview.warp.actions.forEach((action, index) => { %>
+                      <div class="card mb-3">
+                        <div class="card-header">
+                          <strong>Action <%= index + 1 %>: <%= action.label %></strong>
+                        </div>
+                        <div class="card-body">
+                          <p><strong>Type:</strong> <%= action.type %></p>
+                          <p><strong>Description:</strong> <%= action.description || 'None' %></p>
+                          <% if (action.type === 'contract') { %>
+                            <p><strong>Contract:</strong> <code><%= action.address %></code></p>
+                            <p><strong>Function:</strong> <code><%= action.func %></code></p>
+                            <p><strong>Value:</strong> <%= action.value || '0' %> EGLD</p>
+                            <% if (action.args && action.args.length > 0) { %>
+                              <p><strong>Arguments:</strong> <%= action.args.join(', ') %></p>
+                            <% } %>
+                          <% } else if (action.type === 'transfer') { %>
+                            <p><strong>Destination:</strong> <code><%= action.destination %></code></p>
+                            <p><strong>Value:</strong> <%= action.value || '0' %> EGLD</p>
+                          <% } else if (action.type === 'nft') { %>
+                            <p><strong>Token:</strong> <%= action.token %></p>
+                            <p><strong>Nonce:</strong> <%= action.nonce %></p>
+                            <p><strong>Quantity:</strong> <%= action.quantity || '1' %></p>
+                          <% } else if (action.type === 'link') { %>
+                            <p><strong>URL:</strong> <a href="<%= action.url %>" target="_blank"><%= action.url %></a></p>
+                          <% } %>
+                        </div>
+                      </div>
+                    <% }); %>
+                    
+                    <h4 class="mt-4">AI Understanding:</h4>
+                    <div class="card">
+                      <div class="card-body">
+                        <p><strong>Intent:</strong> <%= preview.intentData.intent %></p>
+                        <p><strong>Parameters:</strong></p>
+                        <pre><code><%= JSON.stringify(preview.intentData.params, null, 2) %></code></pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="alert alert-info">
+                  <p class="mb-0">This is what your Warp will look like when deployed.</p>
+                </div>
+                <div class="d-grid gap-2">
+                  <button class="btn btn-primary" id="deployPreviewBtn">Deploy This Warp</button>
+                </div>
+              </div>
+            <% } %>
+
+            <!-- Examples Section -->
+            <div class="mt-5">
+              <h3>Example Prompts</h3>
+              <div class="list-group">
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Stake 10 EGLD with validator erd123...</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">I want to lend 100 USDC to earn interest</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Borrow 500 USDC with 2 EGLD as collateral</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Swap 1 EGLD for USDC at the best rate</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Mint an NFT for 0.5 EGLD from collection X</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Transfer 0.1 EGLD to erd1qqqqqqqqqqqqqpgqd9rvv2n378e27jcts8vfwynpkm8ng7g7945s2ey76d</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Send my NFT with token ID EXAMPLE-123456 to erd1qqqqqqqqqqqqqpgqd9rvv2n378e27jcts8vfwynpkm8ng7g7945s2ey76d</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Create a link to https://multiversx.com with label MultiversX Website</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Vote yes on proposal #123 in the MultiversX DAO</button>
+                <button type="button" class="list-group-item list-group-item-action example-prompt">Swap 1 EGLD for MEX and stake it automatically</button>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer text-center">
+            <p>Created for MultiversX Hackathon | <a href="https://github.com/Sarthaknimje/wp" target="_blank">GitHub</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Example prompt functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const examplePrompts = document.querySelectorAll('.example-prompt');
+      examplePrompts.forEach(button => {
+        button.addEventListener('click', function() {
+          const activeTab = document.querySelector('.tab-pane.active');
+          const promptField = activeTab.querySelector('textarea');
+          if (promptField) {
+            promptField.value = this.textContent;
+          }
+        });
+      });
+      
+      // Custom style toggle
+      const customStyleCheck = document.getElementById('customStyleCheck');
+      const stylingOptions = document.getElementById('stylingOptions');
+      if (customStyleCheck && stylingOptions) {
+        customStyleCheck.addEventListener('change', function() {
+          stylingOptions.style.display = this.checked ? 'flex' : 'none';
+        });
+      }
+      
+      // Deploy preview button
+      const deployPreviewBtn = document.getElementById('deployPreviewBtn');
+      if (deployPreviewBtn) {
+        deployPreviewBtn.addEventListener('click', function() {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/generate';
+          
+          const promptInput = document.createElement('input');
+          promptInput.type = 'hidden';
+          promptInput.name = 'prompt';
+          promptInput.value = document.getElementById('preview-prompt').value;
+          
+          form.appendChild(promptInput);
+          document.body.appendChild(form);
+          form.submit();
+        });
+      }
+      
+      // Alias availability check
+      const checkAliasBtn = document.getElementById('checkAliasBtn');
+      const alias = document.getElementById('alias');
+      const aliasAvailabilityResult = document.getElementById('aliasAvailabilityResult');
+      
+      if (checkAliasBtn && alias && aliasAvailabilityResult) {
+        checkAliasBtn.addEventListener('click', async function() {
+          if (!alias.value.trim()) {
+            aliasAvailabilityResult.innerHTML = 'Please enter an alias first.';
+            aliasAvailabilityResult.className = 'form-text text-warning';
+            return;
+          }
+          
+          checkAliasBtn.disabled = true;
+          checkAliasBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...';
+          
+          try {
+            const response = await fetch(`/api/check-alias/${alias.value.trim()}`);
+            const result = await response.json();
+            
+            if (result.success) {
+              if (result.available) {
+                aliasAvailabilityResult.innerHTML = `✓ The alias "${result.alias}" is available!`;
+                aliasAvailabilityResult.className = 'form-text text-success';
+              } else {
+                aliasAvailabilityResult.innerHTML = `✗ The alias "${result.alias}" is already taken. Please choose another.`;
+                aliasAvailabilityResult.className = 'form-text text-danger';
+              }
+            } else {
+              throw new Error(result.error || 'Failed to check alias availability');
+            }
+          } catch (error) {
+            console.error('Error checking alias:', error);
+            aliasAvailabilityResult.innerHTML = `Error checking alias: ${error.message}`;
+            aliasAvailabilityResult.className = 'form-text text-danger';
+          } finally {
+            checkAliasBtn.disabled = false;
+            checkAliasBtn.textContent = 'Check Availability';
+          }
+        });
+      }
+      
+      // Contract alias availability check
+      const checkContractAliasBtn = document.getElementById('checkContractAliasBtn');
+      const contractAlias = document.getElementById('contractAlias');
+      const contractAliasAvailabilityResult = document.getElementById('contractAliasAvailabilityResult');
+      
+      if (checkContractAliasBtn && contractAlias && contractAliasAvailabilityResult) {
+        checkContractAliasBtn.addEventListener('click', async function() {
+          if (!contractAlias.value.trim()) {
+            contractAliasAvailabilityResult.innerHTML = 'Please enter an alias first.';
+            contractAliasAvailabilityResult.className = 'form-text text-warning';
+            return;
+          }
+          
+          checkContractAliasBtn.disabled = true;
+          checkContractAliasBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...';
+          
+          try {
+            const response = await fetch(`/api/check-alias/${contractAlias.value.trim()}`);
+            const result = await response.json();
+            
+            if (result.success) {
+              if (result.available) {
+                contractAliasAvailabilityResult.innerHTML = `✓ The alias "${result.alias}" is available!`;
+                contractAliasAvailabilityResult.className = 'form-text text-success';
+              } else {
+                contractAliasAvailabilityResult.innerHTML = `✗ The alias "${result.alias}" is already taken. Please choose another.`;
+                contractAliasAvailabilityResult.className = 'form-text text-danger';
+              }
+            } else {
+              throw new Error(result.error || 'Failed to check alias availability');
+            }
+          } catch (error) {
+            console.error('Error checking alias:', error);
+            contractAliasAvailabilityResult.innerHTML = `Error checking alias: ${error.message}`;
+            contractAliasAvailabilityResult.className = 'form-text text-danger';
+          } finally {
+            checkContractAliasBtn.disabled = false;
+            checkContractAliasBtn.textContent = 'Check Availability';
+          }
+        });
+      }
+      
+      // Batch prompt processing
+      const batchPrompts = document.getElementById('batch-prompts');
+      if (batchPrompts) {
+        batchPrompts.addEventListener('input', function() {
+          const lines = this.value.split('\n').filter(line => line.trim().length > 0);
+          const count = lines.length;
+          
+          this.nextElementSibling.textContent = `${count} prompt${count !== 1 ? 's' : ''} (maximum 5 allowed per batch).`;
+          
+          if (count > 5) {
+            this.nextElementSibling.className = 'form-text text-danger';
+          } else {
+            this.nextElementSibling.className = 'form-text';
+          }
+        });
+      }
+      
+      // Dark mode toggle
+      const darkModeSwitch = document.getElementById('darkModeSwitch');
+      if (darkModeSwitch) {
+        // Check for saved preference
+        const darkMode = localStorage.getItem('darkMode') === 'true';
+        
+        // Apply dark mode if preferred
+        if (darkMode) {
+          document.body.classList.add('dark-mode');
+          darkModeSwitch.checked = true;
+        }
+        
+        darkModeSwitch.addEventListener('change', function() {
+          if (this.checked) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('darkMode', 'true');
+          } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('darkMode', 'false');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html> 
