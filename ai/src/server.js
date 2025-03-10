@@ -29,8 +29,20 @@ app.get('/theme.css', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'theme.css'));
 });
 
+// Add explicit route for app screenshot image
+app.get('/images/app-screenshot.png', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'images', 'app-screenshot.png'));
+});
+
 // Routes
 app.get('/', (req, res) => {
+  res.render('landing', { 
+    title: 'WarpX - MultiversX Warp Generator',
+    error: null
+  });
+});
+
+app.get('/app', (req, res) => {
   res.render('index', { 
     title: 'MultiversX AI Warp Generator',
     result: null,

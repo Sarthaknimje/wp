@@ -5,8 +5,7 @@
   <p>Generate shareable links and QR codes for MultiversX blockchain transactions</p>
   
   <div>
-    <a href="https://warp-br3licvk8-sarthaknimjes-projects.vercel.app" target="_blank">View Landing Page</a> •
-    <a href="https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app" target="_blank">Launch App</a> •
+    <a href="https://warpx-unified.vercel.app" target="_blank">Visit WarpX</a> •
     <a href="https://t.me/WarpX_bot" target="_blank">Telegram Bot</a>
   </div>
 </div>
@@ -26,10 +25,9 @@
 
 WarpX is an AI-powered platform that simplifies blockchain interactions on the MultiversX network. Using natural language prompts, users can create complex blockchain transactions without needing to understand the technical details.
 
-The project consists of three main components:
-1. **Web Interface** - A user-friendly web app for creating warps
-2. **Landing Page** - An informative homepage showcasing the platform's capabilities
-3. **Telegram Bot** - For creating warps directly through Telegram
+The project consists of two main components:
+1. **Web Application** - A comprehensive platform with both informational landing page and functional warp generation interface
+2. **Telegram Bot** - For creating warps directly through Telegram messaging
 
 WarpX is built for the MultiversX Hackathon and aims to make blockchain technology more accessible to everyone.
 
@@ -65,7 +63,6 @@ The WarpX system architecture follows this workflow:
 
 The application is structured into the following directories:
 - `/ai` - Main application backend and web interface
-- `/landing` - Landing page React application
 - `/src` - Core warp generation logic
 
 ## ✨ Features
@@ -96,14 +93,10 @@ git clone https://github.com/Sarthaknimje/warpx.git
 cd warpx
 ```
 
-2. Install dependencies for both applications:
+2. Install dependencies:
 ```bash
 # Main application
 cd ai
-npm install
-
-# Landing page
-cd ../landing
 npm install
 ```
 
@@ -115,30 +108,27 @@ cp .env.example .env
 
 4. Configure your .env file with your MultiversX wallet details and API keys.
 
-5. Start the applications:
+5. Start the application:
 ```bash
-# Main application
+# Start the web application
 cd ai
 npm run web
-
-# In another terminal, for the landing page
-cd landing
-npm start
 ```
 
-6. Access the applications:
-   - Main app: http://localhost:3000
-   - Landing page: http://localhost:3001
+6. Access the application:
+   - Web app: http://localhost:3000
 
 ## 📱 Usage
 
 ### Web Interface
 
-1. Visit the [WarpX web app](https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app)
-2. Enter a natural language prompt (e.g., "stake 10 EGLD")
-3. Optionally add an alias for your warp
-4. Click "Generate Warp"
-5. Share the generated link or QR code
+1. Visit the [WarpX web app](https://warpx-unified.vercel.app)
+2. Explore the landing page to learn about features and functionality
+3. Click "Launch App" to access the warp generator
+4. Enter a natural language prompt (e.g., "stake 10 EGLD")
+5. Optionally add an alias for your warp
+6. Click "Generate Warp"
+7. Share the generated link or QR code
 
 ### Telegram Bot
 
@@ -156,24 +146,19 @@ npm start "stake 10 EGLD" --alias my-staking-warp
 
 ## 🌐 Deployment
 
-Both the main application and landing page are deployed on Vercel:
+The unified web application is deployed on Vercel:
 
-- **Landing Page**: [https://warp-br3licvk8-sarthaknimjes-projects.vercel.app](https://warp-br3licvk8-sarthaknimjes-projects.vercel.app)
-- **Web Application**: [https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app](https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app)
+- **WarpX Application**: [https://warpx-unified.vercel.app](https://warpx-unified.vercel.app)
 
 To deploy your own instance:
 
 1. Create a Vercel account
 2. Install Vercel CLI: `npm install -g vercel`
 3. Login to Vercel: `vercel login`
-4. Deploy the applications:
+4. Deploy the application:
 ```bash
 # Main application
 cd ai
-vercel deploy --prod
-
-# Landing page
-cd ../landing
 vercel deploy --prod
 ```
 
@@ -189,9 +174,7 @@ vercel deploy --prod
 - @vleap/warps
 
 ### Frontend
-- React
-- Styled Components
-- Framer Motion
+- EJS templates with CSS
 - Bootstrap 5
 
 ### Tools & Infrastructure
