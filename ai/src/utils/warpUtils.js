@@ -370,67 +370,43 @@ function generateWarpLink(txHash, isAlias = false) {
 }
 
 /**
- * Generate a QR code for a warp link
- * @param {string} txHash - The transaction hash or alias
- * @param {boolean} isAlias - Whether the provided ID is an alias
- * @returns {Promise<string>} - The QR code as a string
+ * Generates a QR code for a warp
+ * @param {string} txHash - Transaction hash or alias
+ * @param {boolean} isAlias - Whether txHash is an alias
+ * @returns {Promise<string>} - The QR code as a data URL for use in img tags
  */
 async function generateWarpQRCode(txHash, isAlias = false) {
   try {
     // Generate the link first
     const link = generateWarpLink(txHash, isAlias);
     
-    // Use qrcode-terminal which is Node.js compatible
-    const qrcode = require('qrcode-terminal');
+    // Use qrcode which can generate proper image data
+    const QRCode = require('qrcode');
     
-    return new Promise((resolve) => {
-      // Create a custom stream to capture the output
-      const chunks = [];
-      const customStream = {
-        write: (chunk) => {
-          chunks.push(chunk);
-        }
-      };
-      
-      // Generate the QR code to our custom stream
-      qrcode.generate(link, { small: true, output: 'stream' }, (qrcode) => {
-        // If qrcode is provided, use it directly
-        if (qrcode) {
-          resolve(qrcode);
-        } else {
-          // Otherwise, use the captured chunks
-          resolve(chunks.join('\n'));
-        }
-      }, customStream);
-    }).catch(error => {
-      console.error('Error in QR code promise:', error);
-      return "QR code generation failed. Please use the link instead.";
+    // Generate a data URL that can be used directly in img tags
+    const dataURL = await QRCode.toDataURL(link, {
+      errorCorrectionLevel: 'H',
+      margin: 1,
+      width: 300,
+      color: {
+        dark: '#4161FF',  // Primary color for the QR code
+        light: '#FFFFFF'  // White background
+      }
     });
+    
+    return dataURL;
   } catch (error) {
     console.error('Error generating QR code:', error);
     
-    // Fallback to a simpler approach if the above fails
-    try {
-      const qrcode = require('qrcode-terminal');
-      let result = '';
-      
-      // Override console.log temporarily
-      const originalLog = console.log;
-      console.log = (msg) => {
-        result += msg + '\n';
-      };
-      
-      // Generate the QR code
-      qrcode.generate(generateWarpLink(txHash, isAlias), { small: true });
-      
-      // Restore console.log
-      console.log = originalLog;
-      
-      return result;
-    } catch (fallbackError) {
-      console.error('Fallback QR code generation failed:', fallbackError);
-      return "QR code generation failed. Please use the link instead.";
-    }
+    // Create a fallback data URL with an error message
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+        <rect width="200" height="200" fill="#1A1A2E" rx="10" ry="10"/>
+        <text x="100" y="80" font-family="Arial" font-size="12" fill="#FFFFFF" text-anchor="middle">QR Code generation failed.</text>
+        <text x="100" y="100" font-family="Arial" font-size="12" fill="#FFFFFF" text-anchor="middle">Please use the link instead.</text>
+        <path d="M80,130 L120,130 M100,110 L100,150" stroke="#FF4C8B" stroke-width="5"/>
+      </svg>
+    `);
   }
 }
 

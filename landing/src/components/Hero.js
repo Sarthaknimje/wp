@@ -126,11 +126,25 @@ const HeroImage = styled.div`
   position: relative;
   padding: 20px;
   
-  img {
+  .app-mockup {
     width: 100%;
     height: auto;
     border-radius: 16px;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    background: rgba(26, 26, 46, 0.7);
+    padding: 15px;
+    border: 1px solid rgba(65, 97, 255, 0.2);
+  }
+  
+  .qr-sample {
+    position: absolute;
+    bottom: -20px;
+    right: -20px;
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 3px solid #fff;
   }
   
   &:before {
@@ -176,6 +190,54 @@ const TypedContainer = styled.div`
     font-size: 1.2rem;
     height: 3rem;
   }
+`;
+
+const CommandPrompt = styled.div`
+  background: rgba(26, 26, 46, 0.7);
+  border-radius: 12px;
+  padding: 15px;
+  font-family: 'Space Grotesk', monospace;
+  border: 1px solid rgba(65, 97, 255, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  margin-bottom: 15px;
+  
+  .prompt-header {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+  }
+  
+  .prompt-text {
+    color: var(--text-primary);
+  }
+  
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: var(--primary);
+    animation: blink 1s infinite;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+  
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+`;
+
+const ResponseBlock = styled.div`
+  background: rgba(26, 26, 46, 0.5);
+  border-radius: 12px;
+  padding: 15px;
+  font-family: 'Space Grotesk', monospace;
+  border: 1px solid rgba(65, 97, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  color: #00C853;
+  font-size: 0.9rem;
+  position: relative;
+  margin-top: 10px;
 `;
 
 const Hero = () => {
@@ -224,7 +286,7 @@ const Hero = () => {
             <PrimaryButton
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => window.open('http://localhost:3000', '_blank')}
+              onClick={() => window.open('https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app', '_blank')}
             >
               <FaRocket /> Launch App
             </PrimaryButton>
@@ -245,7 +307,16 @@ const Hero = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <HeroImage>
-            <img src="https://i.imgur.com/YKH7fjG.png" alt="MultiversX Warp Generator" />
+            <div className="app-mockup">
+              <CommandPrompt>
+                <div className="prompt-header">$ Enter your prompt:</div>
+                <div className="prompt-text">stake 10 EGLD<span className="cursor"></span></div>
+              </CommandPrompt>
+              <ResponseBlock>
+                ✅ Warp created successfully!<br />
+                🔗 Shareable Link: https://devnet.usewarp.to/stake-egld
+              </ResponseBlock>
+            </div>
           </HeroImage>
         </HeroImageContainer>
       </HeroContent>

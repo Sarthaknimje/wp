@@ -1,130 +1,209 @@
-# MultiversX AI Warp Generator
+# WarpX - MultiversX Warp Generator
 
-An innovative AI-powered agent for the MultiversX hackathon that allows anyone to create Warps by simply typing natural language prompts. This tool leverages AI to understand user intent and the MultiversX blockchain's Warp protocol to generate shareable transaction links that are live on the blockchain.
+<div align="center">
+  <img src="landing/public/logo192.png" alt="WarpX Logo" width="150" height="150">
+  <h3>Create blockchain transactions with natural language</h3>
+  <p>Generate shareable links and QR codes for MultiversX blockchain transactions</p>
+  
+  <div>
+    <a href="https://warp-br3licvk8-sarthaknimjes-projects.vercel.app" target="_blank">View Landing Page</a> •
+    <a href="https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app" target="_blank">Launch App</a> •
+    <a href="https://t.me/WarpX_bot" target="_blank">Telegram Bot</a>
+  </div>
+</div>
 
-## 🚀 Features
+## 📋 Table of Contents
 
-- **AI-Powered Understanding**: Uses advanced natural language processing to understand user intent
-- **Natural Language Interface**: Create complex blockchain transactions using simple English
-- **QR Code Generation**: Easily share Warps via scannable QR codes
-- **Preview Mode**: Preview Warps before deploying them to the blockchain
-- **Web Interface**: User-friendly web application for creating Warps
-- **Live Blockchain Deployment**: Creates real Warps on the MultiversX devnet
-- **Support for Various DeFi Activities**:
-  - Staking EGLD
-  - Lending crypto assets
-  - Borrowing with collateral
-  - Swapping tokens
-  - Minting NFTs
-  - Custom contract calls
-- **Custom Aliases**: Register Warps with memorable aliases
-- **Shareable Links**: Generate links that can be shared with anyone
+- [Overview](#-overview)
+- [Architecture](#-architecture)
+- [Features](#-features)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Deployment](#-deployment)
+- [Technologies](#-technologies)
+- [License](#-license)
 
-## 📋 Requirements
+## 🚀 Overview
 
-- Node.js v14 or higher
-- A MultiversX wallet (keystore file)
-- Access to MultiversX devnet (for testing)
+WarpX is an AI-powered platform that simplifies blockchain interactions on the MultiversX network. Using natural language prompts, users can create complex blockchain transactions without needing to understand the technical details.
 
-## ⚙️ Setup
+The project consists of three main components:
+1. **Web Interface** - A user-friendly web app for creating warps
+2. **Landing Page** - An informative homepage showcasing the platform's capabilities
+3. **Telegram Bot** - For creating warps directly through Telegram
 
-1. Clone the repository
-2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Configure your environment:
-   Create a `.env` file with the following variables:
-   ```
-   # MultiversX Network Configuration
-   MULTIVERSX_NETWORK=devnet
-   MULTIVERSX_API_URL=https://devnet-api.multiversx.com
+WarpX is built for the MultiversX Hackathon and aims to make blockchain technology more accessible to everyone.
 
-   # Wallet Configuration
-   WALLET_KEYSTORE_FILE=./path/to/your/keystore.json
-   WALLET_PASSWORD=your_wallet_password
-   WALLET_ADDRESS=your_wallet_address
-   
-   # Application Configuration
-   MOCK_MODE=false  # Set to true for demo mode without blockchain transactions
-   ```
+## 🏗️ Architecture
 
-4. Ensure your wallet has sufficient funds on the devnet:
-   - Get devnet EGLD from the [MultiversX Devnet Faucet](https://r3d4.fr/faucet)
-   - Your wallet needs EGLD to pay for transaction fees
-
-## 🔍 Usage
-
-### CLI Interface
-
-Run the CLI tool:
+The WarpX system architecture follows this workflow:
 
 ```
+┌───────────────┐     ┌───────────────┐     ┌───────────────┐
+│   User Input  │────▶│  NLP Parser   │────▶│ Intent Mapper │
+│  (Web/Telegram)│     │ (Prompt → Intent)│  │(Intent → Action)│
+└───────────────┘     └───────────────┘     └───────┬───────┘
+                                                   │
+┌───────────────┐     ┌───────────────┐     ┌──────▼───────┐
+│  QR Generator │◀────│  Warp Link    │◀────│ Transaction  │
+│  (Shareable)  │     │  Generator    │     │  Builder     │
+└───────┬───────┘     └───────┬───────┘     └───────┬──────┘
+        │                     │                     │
+        └─────────────┬───────┴─────────────┬──────┘
+                      │                     │
+               ┌──────▼─────────────────────▼──────┐
+               │             MultiversX             │
+               │            Blockchain              │
+               └────────────────────────────────────┘
+```
+
+1. **User Input**: Users input natural language commands via web or Telegram
+2. **NLP Parser**: The system parses the natural language to understand the intent
+3. **Intent Mapper**: Maps the parsed intent to specific blockchain actions
+4. **Transaction Builder**: Creates the appropriate blockchain transaction
+5. **Warp Link Generator**: Creates a shareable link for the transaction
+6. **QR Generator**: Generates a QR code that can be scanned to execute the transaction
+
+The application is structured into the following directories:
+- `/ai` - Main application backend and web interface
+- `/landing` - Landing page React application
+- `/src` - Core warp generation logic
+
+## ✨ Features
+
+- **Natural Language Processing**: Create transactions using plain English
+- **Multiple Interfaces**: Web app, CLI, and Telegram bot
+- **Shareable Warp Links**: Generate links that anyone can use to execute your transactions
+- **QR Codes**: Share transactions via scannable QR codes
+- **Alias System**: Create memorable aliases for your warps
+- **Direct Contract Interaction**: Specify direct contract calls for advanced users
+- **Batch Processing**: Create multiple warps at once
+- **Real-time Alias Checking**: Verify alias availability as you type
+- **MultiversX Explorer Integration**: View transactions directly on the blockchain explorer
+- **Responsive Design**: Works on mobile, tablet, and desktop
+
+## 🔧 Installation
+
+### Prerequisites
+- Node.js (v16+)
+- npm or yarn
+- MultiversX wallet (for creating transactions)
+
+### Local Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Sarthaknimje/warpx.git
+cd warpx
+```
+
+2. Install dependencies for both applications:
+```bash
+# Main application
+cd ai
+npm install
+
+# Landing page
+cd ../landing
+npm install
+```
+
+3. Create environment files:
+```bash
+# In the ai directory
+cp .env.example .env
+```
+
+4. Configure your .env file with your MultiversX wallet details and API keys.
+
+5. Start the applications:
+```bash
+# Main application
+cd ai
+npm run web
+
+# In another terminal, for the landing page
+cd landing
 npm start
 ```
 
+6. Access the applications:
+   - Main app: http://localhost:3000
+   - Landing page: http://localhost:3001
+
+## 📱 Usage
+
 ### Web Interface
 
-Run the web server:
+1. Visit the [WarpX web app](https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app)
+2. Enter a natural language prompt (e.g., "stake 10 EGLD")
+3. Optionally add an alias for your warp
+4. Click "Generate Warp"
+5. Share the generated link or QR code
 
+### Telegram Bot
+
+1. Open Telegram and search for [@WarpX_bot](https://t.me/WarpX_bot)
+2. Start a conversation with the bot
+3. Send a natural language prompt
+4. The bot will return a warp link and QR code
+
+### Command Line
+
+```bash
+cd ai
+npm start "stake 10 EGLD" --alias my-staking-warp
 ```
-npm run web
+
+## 🌐 Deployment
+
+Both the main application and landing page are deployed on Vercel:
+
+- **Landing Page**: [https://warp-br3licvk8-sarthaknimjes-projects.vercel.app](https://warp-br3licvk8-sarthaknimjes-projects.vercel.app)
+- **Web Application**: [https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app](https://warpx-7d6ojchxi-sarthaknimjes-projects.vercel.app)
+
+To deploy your own instance:
+
+1. Create a Vercel account
+2. Install Vercel CLI: `npm install -g vercel`
+3. Login to Vercel: `vercel login`
+4. Deploy the applications:
+```bash
+# Main application
+cd ai
+vercel deploy --prod
+
+# Landing page
+cd ../landing
+vercel deploy --prod
 ```
 
-Then open your browser and navigate to `http://localhost:3000`
+5. Set up environment variables in the Vercel dashboard
 
-For development with auto-reload:
+## 💻 Technologies
 
-```
-npm run dev:web
-```
+### Backend
+- Node.js
+- Express
+- EJS templates
+- @multiversx/sdk-core
+- @vleap/warps
 
-### Commands
+### Frontend
+- React
+- Styled Components
+- Framer Motion
+- Bootstrap 5
 
-- **Create a Warp**: Enter a natural language prompt describing what you want to do
-- **Preview a Warp**: Type `preview` to enter preview mode without deploying
-- **Exit**: Type `exit` to quit the application
+### Tools & Infrastructure
+- Vercel (Deployment)
+- QR Code generation
+- Telegram Bot API
 
-### Example Prompts
+## 📄 License
 
-The AI can understand various prompts like:
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-- "Stake 10 EGLD with validator erd123..."
-- "I want to lend 100 USDC to earn interest"
-- "Borrow 500 USDC with 2 EGLD as collateral"
-- "Swap 1 EGLD for USDC at the best rate"
-- "Mint an NFT for 0.5 EGLD from collection X"
+---
 
-## 🧪 Testing
-
-Test your Warps by accessing the generated link at `https://devnet.usewarp.to?warp=your_warp_id` or by scanning the generated QR code. The links are live on the MultiversX devnet and can be shared with anyone.
-
-## 📚 Key Components
-
-- `warpAgent.js` - Core agent that processes prompts and creates Warps
-- `aiUtils.js` - AI-powered prompt understanding
-- `warpUtils.js` - Utilities for Warp creation and blockchain interaction
-- `warpTemplates.js` - Templates for different types of Warps
-- `wallet.js` - Handles wallet operations
-- `server.js` - Web server for the user interface
-
-## 🔗 Resources
-
-- [MultiversX Warps Documentation](https://docs.multiversx.com/developers/tools/warps)
-- [MultiversX API Documentation](https://docs.multiversx.com/developers/apis/api-introduction)
-- [Devnet Explorer](https://devnet-explorer.multiversx.com/)
-
-## 💡 Innovation
-
-This project innovates by:
-
-1. **Bridging Natural Language and Blockchain**: Making complex blockchain operations accessible to everyone
-2. **AI-Powered Intent Recognition**: Understanding what users want to do without requiring technical knowledge
-3. **Instant Shareable Transactions**: Creating ready-to-use transaction links that can be shared anywhere
-4. **QR Code Integration**: Making mobile sharing seamless
-5. **Preview Functionality**: Allowing users to see what they're creating before deploying
-6. **Live Blockchain Integration**: Creating real Warps that are immediately usable on the MultiversX devnet
-
-## 📝 License
-
-MIT 
+Built with ❤️ for the MultiversX Hackathon by Sarthak Nimje 

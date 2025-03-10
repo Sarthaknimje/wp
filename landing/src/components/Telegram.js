@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
-import { FaTelegramPlane, FaRocket } from 'react-icons/fa';
+import { FaTelegramPlane, FaRocket, FaArrowRight } from 'react-icons/fa';
 
 const TelegramSection = styled.section`
   padding: 100px 0;
@@ -160,14 +160,7 @@ const ImageContainer = styled(motion.div)`
 
 const TelegramMockup = styled.div`
   position: relative;
-  width: 100%;
-  
-  img {
-    width: 100%;
-    height: auto;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  }
+  padding: 20px;
   
   &:before {
     content: '';
@@ -182,6 +175,81 @@ const TelegramMockup = styled.div`
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
+  }
+`;
+
+const ChatWindow = styled.div`
+  background: #17212B;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+`;
+
+const ChatHeader = styled.div`
+  background: #2B5278;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  
+  .bot-name {
+    font-weight: 600;
+    margin-left: 10px;
+  }
+  
+  .bot-icon {
+    width: 30px;
+    height: 30px;
+    background: #0088cc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    svg {
+      color: white;
+      font-size: 1rem;
+    }
+  }
+`;
+
+const ChatBody = styled.div`
+  padding: 15px;
+  height: 320px;
+  overflow-y: auto;
+`;
+
+const ChatMessage = styled.div`
+  margin-bottom: 15px;
+  
+  &.user {
+    text-align: right;
+    
+    .message-bubble {
+      background: #2B5278;
+      border-radius: 15px 15px 0 15px;
+      margin-left: auto;
+    }
+  }
+  
+  &.bot {
+    .message-bubble {
+      background: #242F3D;
+      border-radius: 15px 15px 15px 0;
+    }
+  }
+  
+  .message-bubble {
+    display: inline-block;
+    padding: 10px 15px;
+    max-width: 80%;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+  }
+  
+  .timestamp {
+    font-size: 0.7rem;
+    opacity: 0.7;
   }
 `;
 
@@ -206,6 +274,57 @@ const CommandBadge = styled.div`
   &.bottom-left {
     bottom: 20px;
     left: -15px;
+  }
+`;
+
+const QRBlock = styled.div`
+  background: white;
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  position: absolute;
+  bottom: -30px;
+  right: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  
+  .qr-header {
+    color: #333;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  
+  .qr-grid {
+    width: 80px;
+    height: 80px;
+    background: #333;
+    position: relative;
+    
+    &:before, &:after {
+      content: '';
+      position: absolute;
+      background: white;
+    }
+    
+    &:before {
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+    }
+    
+    &:after {
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      bottom: 20px;
+      background: #333;
+    }
   }
 `;
 
@@ -319,13 +438,50 @@ const Telegram = () => {
           animate={inView ? 'visible' : 'hidden'}
         >
           <TelegramMockup>
-            <img src="https://i.imgur.com/nNhTq9j.png" alt="WarpX Telegram Bot" />
+            <ChatWindow>
+              <ChatHeader>
+                <div className="bot-icon">
+                  <FaTelegramPlane />
+                </div>
+                <div className="bot-name">WarpX Bot</div>
+              </ChatHeader>
+              <ChatBody>
+                <ChatMessage className="bot">
+                  <div className="message-bubble">👋 Welcome to WarpX Bot! Create blockchain transactions with natural language prompts.</div>
+                  <div className="timestamp">11:42 AM</div>
+                </ChatMessage>
+                <ChatMessage className="user">
+                  <div className="message-bubble">/warp stake 10 EGLD</div>
+                  <div className="timestamp">11:43 AM</div>
+                </ChatMessage>
+                <ChatMessage className="bot">
+                  <div className="message-bubble">⚙️ Creating your Warp...</div>
+                  <div className="timestamp">11:43 AM</div>
+                </ChatMessage>
+                <ChatMessage className="bot">
+                  <div className="message-bubble">
+                    ✅ Warp created successfully!
+                    <br /><br />
+                    📋 Transaction Hash: 4f97a4ac2f78d5a3...
+                    <br /><br />
+                    🔗 Shareable Link: https://devnet.usewarp.to/stake-egld
+                    <br /><br />
+                    📱 Share this link or QR code to let anyone execute the transaction!
+                  </div>
+                  <div className="timestamp">11:44 AM</div>
+                </ChatMessage>
+              </ChatBody>
+            </ChatWindow>
             <CommandBadge className="top-right">
               <FaTelegramPlane /> /warp
             </CommandBadge>
             <CommandBadge className="bottom-left">
               <FaTelegramPlane /> /templates
             </CommandBadge>
+            <QRBlock>
+              <div className="qr-header">Scan Me</div>
+              <div className="qr-grid"></div>
+            </QRBlock>
           </TelegramMockup>
         </ImageContainer>
       </Container>

@@ -24,17 +24,45 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Add explicit route for theme.css to debug any issues
+app.get('/theme.css', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'theme.css'));
+});
+
 // Routes
 app.get('/', (req, res) => {
   res.render('index', { 
     title: 'MultiversX AI Warp Generator',
     result: null,
     preview: null,
-    error: null
+    error: null,
+    warpResult: null
   });
 });
 
-app.post('/generate', async (req, res) => {
+// New route to check alias availability
+app.get('/check-alias', async (req, res) => {
+  try {
+    const alias = req.query.alias;
+    
+    if (!alias) {
+      return res.status(400).json({ error: 'Alias is required' });
+    }
+    
+    const available = await isAliasAvailable(alias);
+    
+    // Add a slight delay to prevent too many rapid requests
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    return res.json({ available });
+  } catch (error) {
+    console.error('Error checking alias availability:', error);
+    return res.status(500).json({ error: 'Failed to check alias availability' });
+  }
+});
+
+// Handle create-warp form submission
+app.post('/create-warp', async (req, res) => {
   try {
     const { prompt, alias } = req.body;
     
@@ -43,7 +71,8 @@ app.post('/generate', async (req, res) => {
         title: 'MultiversX AI Warp Generator',
         result: null,
         preview: null,
-        error: 'Please enter a prompt'
+        error: 'Please enter a prompt',
+        warpResult: null
       });
     }
     
@@ -57,7 +86,8 @@ app.post('/generate', async (req, res) => {
             result: null,
             preview: null,
             error: `The alias "${alias}" is already taken. Please choose another one.`,
-            helpfulTips: ['Try adding a unique prefix or suffix to make your alias unique.']
+            helpfulTips: ['Try adding a unique prefix or suffix to make your alias unique.'],
+            warpResult: null
           });
         }
       } catch (aliasError) {
@@ -66,16 +96,17 @@ app.post('/generate', async (req, res) => {
       }
     }
     
-    const result = await processPrompt(prompt, alias || null);
+    const warpResult = await processPrompt(prompt, alias || null);
     
     // Add explorer link to the result
-    result.explorerLink = `https://devnet-explorer.multiversx.com/transactions/${result.txHash}`;
+    warpResult.explorerLink = `https://devnet-explorer.multiversx.com/transactions/${warpResult.txHash}`;
     
     res.render('index', { 
       title: 'MultiversX AI Warp Generator',
-      result,
+      result: null,
       preview: null,
-      error: null
+      error: null,
+      warpResult
     });
   } catch (error) {
     console.error('Error generating warp:', error);
@@ -103,7 +134,86 @@ app.post('/generate', async (req, res) => {
       result: null,
       preview: null,
       error: error.message,
-      helpfulTips
+      helpfulTips,
+      warpResult: null
+    });
+  }
+});
+
+app.post('/generate', async (req, res) => {
+  try {
+    const { prompt, alias } = req.body;
+    
+    if (!prompt) {
+      return res.render('index', { 
+        title: 'MultiversX AI Warp Generator',
+        result: null,
+        preview: null,
+        error: 'Please enter a prompt',
+        warpResult: null
+      });
+    }
+    
+    // Check if alias is available before proceeding
+    if (alias) {
+      try {
+        const available = await isAliasAvailable(alias);
+        if (!available) {
+          return res.render('index', { 
+            title: 'MultiversX AI Warp Generator',
+            result: null,
+            preview: null,
+            error: `The alias "${alias}" is already taken. Please choose another one.`,
+            helpfulTips: ['Try adding a unique prefix or suffix to make your alias unique.'],
+            warpResult: null
+          });
+        }
+      } catch (aliasError) {
+        console.warn('Could not check alias availability:', aliasError);
+        // Continue anyway, the alias registration will fail later if it's taken
+      }
+    }
+    
+    const result = await processPrompt(prompt, alias || null);
+    
+    // Add explorer link to the result
+    result.explorerLink = `https://devnet-explorer.multiversx.com/transactions/${result.txHash}`;
+    
+    res.render('index', { 
+      title: 'MultiversX AI Warp Generator',
+      result,
+      preview: null,
+      error: null,
+      warpResult: null
+    });
+  } catch (error) {
+    console.error('Error generating warp:', error);
+    
+    // Prepare helpful error messages
+    let helpfulTips = error.helpfulTips || [];
+    if (!helpfulTips.length) {
+      if (error.message.includes('wallet')) {
+        helpfulTips = [
+          'Check that your wallet keystore file exists at the path specified in .env',
+          'Verify that your wallet password is correct',
+          'Ensure your wallet has sufficient EGLD for transaction fees'
+        ];
+      } else if (error.message.includes('transaction')) {
+        helpfulTips = [
+          'Check your network connection',
+          'Verify that the MultiversX devnet is operational',
+          'Ensure your wallet has sufficient EGLD for transaction fees'
+        ];
+      }
+    }
+    
+    res.render('index', { 
+      title: 'MultiversX AI Warp Generator',
+      result: null,
+      preview: null,
+      error: error.message,
+      helpfulTips,
+      warpResult: null
     });
   }
 });
@@ -117,7 +227,8 @@ app.post('/preview', async (req, res) => {
         title: 'MultiversX AI Warp Generator',
         result: null,
         preview: null,
-        error: 'Please enter a prompt'
+        error: 'Please enter a prompt',
+        warpResult: null
       });
     }
     
@@ -127,7 +238,8 @@ app.post('/preview', async (req, res) => {
       title: 'MultiversX AI Warp Generator',
       result: null,
       preview,
-      error: null
+      error: null,
+      warpResult: null
     });
   } catch (error) {
     console.error('Error previewing warp:', error);
@@ -135,7 +247,8 @@ app.post('/preview', async (req, res) => {
       title: 'MultiversX AI Warp Generator',
       result: null,
       preview: null,
-      error: error.message
+      error: error.message,
+      warpResult: null
     });
   }
 });
@@ -151,7 +264,8 @@ app.post('/create-contract-warp', async (req, res) => {
         result: null,
         preview: null,
         error: 'Contract address and function name are required',
-        helpfulTips: ['Provide a valid MultiversX smart contract address', 'Enter the function name you want to call']
+        helpfulTips: ['Provide a valid MultiversX smart contract address', 'Enter the function name you want to call'],
+        warpResult: null
       });
     }
     
@@ -165,7 +279,8 @@ app.post('/create-contract-warp', async (req, res) => {
             result: null,
             preview: null,
             error: `The alias "${alias}" is already taken. Please choose another one.`,
-            helpfulTips: ['Try adding a unique prefix or suffix to make your alias unique.']
+            helpfulTips: ['Try adding a unique prefix or suffix to make your alias unique.'],
+            warpResult: null
           });
         }
       } catch (aliasError) {
@@ -193,7 +308,8 @@ app.post('/create-contract-warp', async (req, res) => {
       title: 'MultiversX AI Warp Generator',
       result,
       preview: null,
-      error: null
+      error: null,
+      warpResult: null
     });
   } catch (error) {
     console.error('Error creating contract warp:', error);
@@ -206,7 +322,8 @@ app.post('/create-contract-warp', async (req, res) => {
         'Make sure the contract address is valid',
         'Check that the function name exists on the contract',
         'Ensure arguments are in the correct format'
-      ]
+      ],
+      warpResult: null
     });
   }
 });
@@ -407,7 +524,8 @@ app.post('/direct-contract', async (req, res) => {
         result: null,
         preview: null,
         error: 'Contract address and function name are required',
-        helpfulTips: ['Make sure to provide a valid contract address and function name']
+        helpfulTips: ['Make sure to provide a valid contract address and function name'],
+        warpResult: null
       });
     }
     
@@ -425,7 +543,8 @@ app.post('/direct-contract', async (req, res) => {
           result: null,
           preview: null,
           error: 'Invalid arguments format. Please provide a valid JSON array',
-          helpfulTips: ['Example: ["arg1", "arg2"] or [42, "string"]']
+          helpfulTips: ['Example: ["arg1", "arg2"] or [42, "string"]'],
+          warpResult: null
         });
       }
     }
@@ -458,7 +577,8 @@ app.post('/direct-contract', async (req, res) => {
       result,
       preview: null,
       error: null,
-      helpfulTips
+      helpfulTips,
+      warpResult: null
     });
   } catch (error) {
     console.error('Error processing direct contract warp:', error);
@@ -472,9 +592,18 @@ app.post('/direct-contract', async (req, res) => {
         'Make sure the contract address is valid',
         'Check that the function name exists on the contract',
         'Ensure arguments are in the correct format'
-      ]
+      ],
+      warpResult: null
     });
   }
+});
+
+// Handle 404 errors
+app.use((req, res, next) => {
+  if (req.path.endsWith('.css') || req.path.endsWith('.js') || req.path.includes('/images/')) {
+    console.log(`Resource not found: ${req.path}`);
+  }
+  next();
 });
 
 // Start the server
