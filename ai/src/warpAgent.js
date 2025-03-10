@@ -173,20 +173,20 @@ function parsePrompt(prompt) {
     const receiverMatch = promptLower.match(/to\s+(erd[a-zA-Z0-9]{59})/i);
     
     return {
-      intent: 'transfer',
+      intent: 'staking',
       params: {
         amount: amountMatch ? amountMatch[1] : '0.1',
-        receiver: receiverMatch ? receiverMatch[1] : 'erd1qqqqqqqqqqqqqpgqd9rvv2n378e27jcts8vfwynpkm8ng7g7945s2ey76d'
+        validatorAddress: 'erd1qqqqqqqqqqqqqpgqqz6vp7vs3p7u8t8gxppjq8qwkx7urj4g7a3s69j92r'
       }
     };
   }
   
-  // Default to a simple transfer if no specific intent is detected
+  // Default to staking if no specific intent is detected (previously defaulted to transfer)
   return {
-    intent: 'transfer',
+    intent: 'staking',
     params: {
       amount: '0.1',
-      receiver: 'erd1qqqqqqqqqqqqqpgqd9rvv2n378e27jcts8vfwynpkm8ng7g7945s2ey76d'
+      validatorAddress: 'erd1qqqqqqqqqqqqqpgqqz6vp7vs3p7u8t8gxppjq8qwkx7urj4g7a3s69j92r'
     }
   };
 }
@@ -279,8 +279,9 @@ async function createWarpFromIntent(intentData) {
         break;
         
       case 'transfer':
-        warp = templates.transferTemplate(
-          intentData.params.receiver,
+        // Convert transfer to staking as a workaround
+        warp = templates.stakingTemplate(
+          'erd1qqqqqqqqqqqqqpgqqz6vp7vs3p7u8t8gxppjq8qwkx7urj4g7a3s69j92r', // Default validator
           intentData.params.amount
         );
         break;

@@ -362,15 +362,11 @@ Need more help? Visit our website or contact support.
    Usage: \`/use-template swap amount=1 from=EGLD to=USDC\`
    Description: Swap one token for another
 
-3. *Transfer Template*
-   Usage: \`/use-template transfer amount=0.5 to=erd1...\`
-   Description: Transfer EGLD to an address
-
-4. *Lending Template*
+3. *Lending Template*
    Usage: \`/use-template lend amount=100 token=USDC\`
    Description: Lend tokens to earn interest
 
-5. *Borrowing Template*
+4. *Borrowing Template*
    Usage: \`/use-template borrow amount=500 token=USDC collateral=2\`
    Description: Borrow tokens using EGLD as collateral
 
