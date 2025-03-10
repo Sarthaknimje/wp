@@ -1,8 +1,7 @@
 # WarpX - MultiversX Warp Generator
 
 <div align="center">
-  <img src="landing/public/logo192.png" alt="WarpX Logo" width="150" height="150">
-  <h3>Create blockchain transactions with natural language</h3>
+  <h3>WarpX : Create blockchain transactions with natural language</h3>
   <p>Generate shareable links and QR codes for MultiversX blockchain transactions</p>
   
   <div>
